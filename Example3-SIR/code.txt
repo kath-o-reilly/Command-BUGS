@@ -1,0 +1,54 @@
+model{
+ for(j in 1:N){
+# N = total number of rows in the dataset
+#binomial part for passage from susceptibles to infectious
+# C = number of new infectious in each time step for each cohort
+# Si = number of susceptible animals at the beginning of each time step
+# Ni = total number of animals at the beginning of each time step
+# Ii = number of infectious animals at the beginning of each time step
+      C[j]~dbin(p[j],Si[j])
+      senC[j]~dbeta(44.8,36.7)
+      senE[j]~dbeta(47.4,31.6)
+      Psen[j]<-(1-senC[j])*(1-senE[j])
+      Ioc[j]~dbin(Psen[j],Ni[j])
+      I[j]<- Ii[j]+Ioc[j]
+      dumm[j]<-step(0-I[j])
+      p[j]<-1-q[j]
+      log(q[j])<--B[j]
+# dat is a matrix which includes for each row of the dataset the group number and the time step number (group is the first column and time is the second column)
+      log(B[j])<-int1+log(I[j]+dumm[j])+(-log(Ni[j])*(1-dumm[j]))+alpha[dat[j,1],dat[j,2]]  
+#poisson part for passage from infectious to carrier
+#Rn = number of new carriers
+      Rn[j]~dbin(p1[j],I[j])
+      p1[j]<-1-q1[j]
+      log(q1[j])<--A[j]
+      log(A[j])<- delta[dat[j,1]]+int2
+#poisson part for passage from carrier to infectious
+# In = number of new infectious animals that in the time step before were carriers
+      In[j]~dpois(phi[j])
+      dumm2[j]<-step(0-Ri[j])
+      log(phi[j])<-beta[dat[j,1]]+log(Ri[j]+dumm2[j])+int3
+      }
+   for(m in 1:n){
+# n = total number of groups/cohorts
+    alpha[m,1]~dnorm(0,tau5)
+    delta[m]~dnorm(0,tau2)
+    beta[m]~dnorm(0,tau3)
+    for(r in 2:t){
+# t= total number of time steps
+     alpha[m,r]~dnorm(alpha[m,r-1],tau5)
+    }
+  } 
+
+tau2~dgamma(0.5,0.005)
+tau3~dgamma(0.5,0.005) 
+tau5~dgamma(0.5,0.005)
+int1~dnorm(0,0.01)
+int2~dnorm(0,0.01)
+int3~dnorm(0,0.01)
+}
+
+
+# int1 = log(beta) 
+# int2 = log(alpha)
+# int3 = log(Nu) 
