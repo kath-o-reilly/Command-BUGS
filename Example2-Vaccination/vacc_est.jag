@@ -1,0 +1,64 @@
+model {
+
+#DHS Data
+for(i in 1:D){
+  xd[i]~dbinom(pd[i],1) 
+  logit(pd[i]) <- r[rd[i]] + d1[dd[i]] + t[td[i]] + yp[ypd[i]] + s[sia.d[i]] + sr[sr.d[i]] + st[st.d[i]] + log(ad[i])
+}
+
+#AFP Data
+for(i in 1:A){
+  xa[i]~dbinom(pa[i],1) 
+  logit(pa[i]) <- r[ra[i]] + t[ta[i]] + yp[ypa[i]] + s[sia.a[i]] + sr[sr.a[i]] + st[st.a[i]] + log(aa[i])
+}
+
+# priors 
+d.avg <- d1/2 
+
+for(k in 1:R){
+  r[k]~dnorm(0,tau_r)
+  province[k] <- ilogit(r[k] + d.avg + log(12) + t[5]) #12 months and year (2011)  
+}
+for(k in 1:Y){	
+  t[k]~dnorm(0, tau_t)
+  year[k] <- ilogit(t[k]) #probability
+}
+for(k in 1:YP){	
+  yp[k]~dnorm(0, tau_yp)
+}
+for(k in 1:S){	
+  s[k]~dnorm(0, tau_s)
+  sia[k] <- exp(s[k]) #odds ratio
+}
+for(k in 1:SR){	
+  sr[k]~dnorm(0, tau_sr)
+}
+for(k in 1:ST){	
+  st[k]~dnorm(0, tau_st)
+}
+
+tau_r <- 1 / (sigma_r*sigma_r) 
+sigma_r~dunif(0.01, 1)  #standard deviation  
+
+tau_d <- 1 / (sigma_d*sigma_d)
+sigma_d~dunif(0.01, 1)
+
+d1~dnorm(0, tau_d)
+d1.OR <- exp(d1)
+d.avg.OR <- exp(d.avg)
+
+tau_t <- 1 / (sigma_t*sigma_t)
+sigma_t~dunif(0.01, 1) 
+
+tau_yp <- 1 / (sigma_yp*sigma_yp)
+sigma_yp~dunif(0.01, 1) 
+
+tau_s <- 1 / (sigma_s*sigma_s)
+sigma_s~dunif(0.01, 1) 
+
+tau_sr <- 1 / (sigma_sr*sigma_sr)
+sigma_sr~dunif(0.01, 1) 
+
+tau_st <- 1 / (sigma_st*sigma_st)
+sigma_st~dunif(0.01, 1) 
+}
